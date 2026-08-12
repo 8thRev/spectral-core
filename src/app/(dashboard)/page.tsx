@@ -1,20 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
     BarChart3,
-    Activity,
     ArrowRight,
     Clock,
     Check,
-    CloudOff,
 } from 'lucide-react';
-import { FaQuestionCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // Mock Data
 const MOCK_DATA = {
@@ -39,7 +34,6 @@ const MOCK_DATA = {
 };
 
 export default function DashboardPage() {
-    const router = useRouter();
 
     const getActivityDotClass = (type: string) => {
         if (type === 'fully_closed') return 'bg-emerald-500';
@@ -158,7 +152,7 @@ export default function DashboardPage() {
                         
                         <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 flex flex-col shadow-sm">
                             <div className="mb-4">
-                                <h3 className="text-base font-semibold text-zinc-900 mb-1">Yesterday's Top Drivers</h3>
+                                <h3 className="text-base font-semibold text-zinc-900 mb-1">Yesterday&apos;s Top Drivers</h3>
                                 <p className="text-xs text-zinc-500">Compare biomass, time, and temperature.</p>
                             </div>
                             <div className="flex-1 rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 flex flex-col items-center justify-center gap-4 bg-zinc-50/50">

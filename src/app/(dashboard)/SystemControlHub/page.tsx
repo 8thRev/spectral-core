@@ -8,10 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { 
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger 
-} from "@/components/ui/tooltip";
-import { 
-  Settings, Wrench, Target, HelpCircle, ShieldCheck, ChevronDown, CheckCircle, Sliders 
+  Settings, Wrench, Target, HelpCircle, ChevronDown, CheckCircle 
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -76,14 +73,14 @@ export default function SystemControlHubPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Application</label>
-                <Select value={selectedApp} onValueChange={setSelectedApp}>
+                <Select value={selectedApp} onValueChange={(v) => setSelectedApp(v || "")}>
                   <SelectTrigger><SelectValue placeholder="Select app" /></SelectTrigger>
                   <SelectContent><SelectItem value="Processing">Processing</SelectItem></SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Solvent</label>
-                <Select value={selectedSolvent} onValueChange={setSelectedSolvent}>
+                <Select value={selectedSolvent} onValueChange={(v) => setSelectedSolvent(v || "")}>
                   <SelectTrigger><SelectValue placeholder="Select solvent" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Ethanol">Ethanol</SelectItem>
@@ -93,7 +90,7 @@ export default function SystemControlHubPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Device</label>
-                <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+                <Select value={selectedDevice} onValueChange={(v) => setSelectedDevice(v || "")}>
                   <SelectTrigger><SelectValue placeholder="Select device" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="device-1">Extractor Alpha</SelectItem>
@@ -103,7 +100,7 @@ export default function SystemControlHubPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Sensor</label>
-                <Select value={selectedSensor} onValueChange={setSelectedSensor}>
+                <Select value={selectedSensor} onValueChange={(v) => setSelectedSensor(v || "")}>
                   <SelectTrigger><SelectValue placeholder="Select sensor" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sensor-1">Flowcell - X100</SelectItem>
@@ -114,7 +111,7 @@ export default function SystemControlHubPage() {
                 <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wider flex items-center gap-1">
                   Location <HelpCircle className="w-3 h-3 text-zinc-400" />
                 </label>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <Select value={selectedLocation} onValueChange={(v) => setSelectedLocation(v || "")}>
                   <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="loc-1">Main Facility</SelectItem>
