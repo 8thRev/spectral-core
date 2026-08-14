@@ -1,17 +1,26 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-    BarChart3,
-    ArrowRight,
-    Clock,
-    Check,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Clock } from 'lucide-react';
 
 // Mock Data
+const MOCK_TASKS = [
+    { id: "TSK-001", scheduler: "Alice", date: "2026-08-14" },
+    { id: "TSK-002", scheduler: "Bob", date: "2026-08-13" },
+    { id: "TSK-003", scheduler: "Charlie", date: "2026-08-12" },
+];
+
 const MOCK_DATA = {
     user: { name: "Otake" },
     biomass_weight_yesterday: 125.5,
@@ -47,14 +56,9 @@ export default function DashboardPage() {
             <main className="w-full max-w-7xl mx-auto py-8 px-6 lg:px-8">
                 
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="mb-8"
-                >
+                <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="mb-4">
-                        <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex flex-col md:flex-row items-start justify-between gap-4 mb-2">
                             <div className="flex-1">
                                 <h1 className="text-2xl lg:text-3xl font-semibold text-zinc-900 mb-1 tracking-tight">
                                     Good morning, {MOCK_DATA.user.name}.
@@ -77,93 +81,49 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                                <Link href="/live-dashboard">
+                                    <Button variant="outline" className="text-sm font-medium">Live Dashboard</Button>
+                                </Link>
+                                <Link href="/data-review">
+                                    <Button variant="outline" className="text-sm font-medium">Data Review</Button>
+                                </Link>
+                                <Link href="/new-task">
+                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Start New Task</Button>
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Process Stability Graph Mock */}
+                    {/* Live Task Map Graph Mock */}
                     <div className="mb-6">
-                        <div className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm">
-                            <p className="text-lg font-semibold text-zinc-900 mb-3">Extraction Process Stability</p>
-                            <div className="w-full h-48 bg-zinc-50 border border-zinc-100 rounded-lg flex items-center justify-center flex-col text-zinc-400">
-                                <BarChart3 className="w-8 h-8 mb-2 opacity-50" />
-                                <span className="text-sm font-medium">Stability Graph Visualization</span>
+                        <div className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between mb-4">
+                                <p className="text-lg font-semibold text-zinc-900">Live Task Map</p>
                             </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Task ID</TableHead>
+                                        <TableHead>Scheduler</TableHead>
+                                        <TableHead>Date Scheduled</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {MOCK_TASKS.map((task) => (
+                                        <TableRow key={task.id}>
+                                            <TableCell className="font-medium">{task.id}</TableCell>
+                                            <TableCell>{task.scheduler}</TableCell>
+                                            <TableCell>{task.date}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
 
-                    {/* 3 Column Stats */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-                        {/* Active Extraction */}
-                        <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm">
-                            <h3 className="text-sm font-semibold text-zinc-900 mb-4">Active in Extraction</h3>
-                            <div className="space-y-2 min-h-[92px]">
-                                {MOCK_DATA.active_extraction_batches.map((batchName) => (
-                                    <div key={batchName} className="text-sm text-zinc-700 font-medium">
-                                        • {batchName}
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-xs text-zinc-500 mt-3 border-t border-zinc-100 pt-3">
-                                {MOCK_DATA.active_extraction_batches.length} batches
-                            </p>
-                        </section>
 
-                        {/* Active Post-Processing */}
-                        <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm">
-                            <h3 className="text-sm font-semibold text-zinc-900 mb-4">Active in Post-Processing</h3>
-                            <div className="space-y-2 min-h-[92px]">
-                                {MOCK_DATA.active_post_processing_batches.map((batchName) => (
-                                    <div key={batchName} className="text-sm text-zinc-700 font-medium">
-                                        • {batchName}
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-xs text-zinc-500 mt-3 border-t border-zinc-100 pt-3">
-                                {MOCK_DATA.active_post_processing_batches.length} batch
-                            </p>
-                        </section>
-
-                        {/* Recently Completed */}
-                        <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm">
-                            <h3 className="text-sm font-semibold text-zinc-900 mb-4">Recently Completed</h3>
-                            <div className="space-y-2 min-h-[92px]">
-                                {MOCK_DATA.recently_completed_batches.map((batchName) => (
-                                    <div key={batchName} className="text-sm text-zinc-700 font-medium flex items-center">
-                                        • {batchName} <Check className="w-3.5 h-3.5 text-emerald-500 ml-1.5" strokeWidth={3} />
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-xs text-zinc-500 mt-3 border-t border-zinc-100 pt-3">Last 7 days</p>
-                        </section>
-                    </div>
-
-                    {/* Run Analyzer Section Mock */}
-                    <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-4 mb-6">
-                        <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 flex flex-col gap-3 shadow-sm">
-                            <div className="flex flex-col items-center justify-center text-center gap-2 py-10">
-                                <p className="text-xs uppercase tracking-[0.2em] text-blue-600 font-bold">Compare Runs</p>
-                                <h3 className="text-xl font-semibold text-zinc-900">Standardize Consistency</h3>
-                                <p className="text-sm text-zinc-500 max-w-md">Find hidden differences across each run easily.</p>
-                                <Button variant="link" className="text-blue-600 hover:text-blue-700 p-0 h-auto mt-2 font-medium">
-                                    Open Run Analyzer <ArrowRight className="w-4 h-4 ml-1" />
-                                </Button>
-                            </div>
-                        </section>
-                        
-                        <section className="bg-white/80 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 flex flex-col shadow-sm">
-                            <div className="mb-4">
-                                <h3 className="text-base font-semibold text-zinc-900 mb-1">Yesterday&apos;s Top Drivers</h3>
-                                <p className="text-xs text-zinc-500">Compare biomass, time, and temperature.</p>
-                            </div>
-                            <div className="flex-1 rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 flex flex-col items-center justify-center gap-4 bg-zinc-50/50">
-                                <p>No completed runs in the last 24 hours. Log a run to unlock insights.</p>
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-8 px-4 text-xs">
-                                    Open Run Analyzer <ArrowRight className="w-3 h-3 ml-1.5" />
-                                </Button>
-                            </div>
-                        </section>
-                    </div>
-                </motion.div>
+                </div>
 
                 {/* Recent Activity List */}
                 <div className="mx-auto w-full max-w-3xl bg-white/70 backdrop-blur-sm border border-zinc-200/60 rounded-xl p-5 shadow-sm">
@@ -172,7 +132,7 @@ export default function DashboardPage() {
                             <Clock className="w-4 h-4 text-emerald-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-zinc-900">Recent Activity</h3>
+                            <h3 className="text-lg font-semibold text-zinc-900">Task History</h3>
                             <p className="text-xs text-zinc-500">Facility last active 2 hours ago</p>
                         </div>
                     </div>

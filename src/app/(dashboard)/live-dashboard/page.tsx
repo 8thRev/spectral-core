@@ -53,7 +53,7 @@ export default function LiveDashboardPage() {
             <div className="p-6 border-b border-zinc-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               {/* Tabs */}
               <div className="flex items-center gap-2 bg-zinc-50 p-1 rounded-lg border border-zinc-200 w-full sm:w-auto">
-                {["Attenuation x Wavelength", "Wavelength x Time", "Calculations"].map((tab, idx) => (
+                {["Attenuation x Wavelength", "Attenuation x Time", "Calculations"].map((tab, idx) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(idx)}
@@ -91,7 +91,7 @@ export default function LiveDashboardPage() {
                         tick={{ fill: '#71717A', fontSize: 12 }}
                         dx={-10}
                         label={{ 
-                          value: activeTab === 0 ? 'Attenuation' : activeTab === 1 ? 'Wavelength' : '', 
+                          value: (activeTab === 0 || activeTab === 1) ? 'Attenuation' : '', 
                           angle: -90, 
                           position: 'insideLeft',
                           fill: '#71717A',

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
@@ -19,7 +19,6 @@ export default function SystemControlHubPage() {
   const [selectedSensor, setSelectedSensor] = useState("sensor-1");
   const [selectedLocation, setSelectedLocation] = useState("loc-1");
   const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [isAutomatic, setIsAutomatic] = useState(false);
   const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
 
   const handleLoadModel = () => {
@@ -195,36 +194,7 @@ export default function SystemControlHubPage() {
           </div>
         </section>
 
-        {/* 3. Control Daily Health Checks */}
-        <section>
-          <Card className="p-6 bg-white border-zinc-200">
-            <div className="flex items-start justify-between">
-              <div className="max-w-2xl">
-                <h3 className="text-lg font-semibold text-zinc-900 mb-2">Control Daily Health Checks</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">
-                  Newton runs all three health checks automatically at whatever time you pick — no manual
-                  steps, no reminders needed. Pick a time when nothing is running and leave it. Please switch to Automatic and set your preferred time now.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`text-sm font-medium ${!isAutomatic ? 'text-blue-600' : 'text-zinc-500'}`}>Manual</span>
-                <Switch checked={isAutomatic} onCheckedChange={setIsAutomatic} className="data-[state=checked]:bg-blue-600" />
-                <span className={`text-sm font-medium ${isAutomatic ? 'text-blue-600' : 'text-zinc-500'}`}>Automatic</span>
-              </div>
-            </div>
-            {isAutomatic && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-semibold text-blue-900">Scheduled Time</h4>
-                  <p className="text-xs text-blue-700 mt-1">Runs daily at 02:00 AM</p>
-                </div>
-                <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-100">
-                  Edit Schedule
-                </Button>
-              </div>
-            )}
-          </Card>
-        </section>
+
 
       </div>
     </div>

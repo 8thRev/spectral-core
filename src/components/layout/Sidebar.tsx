@@ -27,8 +27,7 @@ const navItems = [
   { name: "Method", href: "/methods", icon: Settings },
   { name: "Data Review", href: "/data-review", icon: Database },
   { name: "System Control Hub", href: "/SystemControlHub", icon: Sliders },
-  { name: "Set Production Targets", href: "/PerformanceAnalytics?tab=goal", icon: Target },
-  { name: "Admin", href: "/admin-panel", icon: Target },
+  { name: "Admin", href: "/admin", icon: Target },
   { name: "Models", href: "/models", icon: Box },
 ];
 
