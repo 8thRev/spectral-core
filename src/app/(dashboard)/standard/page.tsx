@@ -2,68 +2,93 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Check, Pencil } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
+import { DialogTrigger } from "@/components/ui/dialog";
+import { StandardDialog, StandardRowData } from "@/components/shared/StandardDialog";
 
 type StandardRow = {
   id: string;
-  numId: string;
   std: string;
   concentration: string;
   note: string;
-  saved?: boolean;
+  fileName: string;
 };
 
 export default function StandardPage() {
   const [rows, setRows] = useState<StandardRow[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // To store the initial data for the form when editing
+  const [initialData, setInitialData] = useState<Partial<StandardRowData>>({});
+
   useEffect(() => {
-    const savedRows = localStorage.getItem("standardRows");
-    if (savedRows) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setRows(JSON.parse(savedRows));
+    const savedRowsStr = localStorage.getItem("standardRows");
+    let initialRows = savedRowsStr ? JSON.parse(savedRowsStr) : [];
+
+    const predefined = [
+      { id: "pre-1", std: "Standard 1", concentration: "", note: "", fileName: "" },
+      { id: "pre-2", std: "Standard 2", concentration: "", note: "", fileName: "" },
+      { id: "pre-3", std: "Standard 3", concentration: "", note: "", fileName: "" },
+      { id: "pre-4", std: "Standard 4", concentration: "", note: "", fileName: "" },
+    ];
+
+    if (initialRows.length === 0) {
+      initialRows = predefined;
     } else {
-      setRows([{ id: "1", numId: "1", std: "", concentration: "", note: "" }]);
+      // If they don't have the predefined standards, prepend them
+      const hasPredefined = initialRows.some((r: StandardRow) => r.std?.includes("Standard 1"));
+      if (!hasPredefined) {
+        initialRows = [...predefined, ...initialRows];
+      }
     }
+
+    Promise.resolve().then(() => {
+      setRows(initialRows);
+    });
   }, []);
 
-  const addRow = () => {
-    const newId = Date.now().toString();
-    const newNumId = (rows.length + 1).toString();
-    setRows([
-      ...rows,
-      { id: newId, numId: newNumId, std: "", concentration: "", note: "" }
-    ]);
+  const saveRowsToLocal = (newRows: StandardRow[]) => {
+    setRows(newRows);
+    localStorage.setItem("standardRows", JSON.stringify(newRows));
   };
 
   const deleteRow = (id: string) => {
-    const updatedRows = rows.filter(row => row.id !== id).map((row, index) => ({
-      ...row,
-      numId: (index + 1).toString()
-    }));
-    setRows(updatedRows);
-    localStorage.setItem("standardRows", JSON.stringify(updatedRows.filter(r => r.saved)));
+    saveRowsToLocal(rows.filter(row => row.id !== id));
   };
 
-  const saveRow = (id: string) => {
-    const updatedRows = rows.map(row => 
-      row.id === id ? { ...row, saved: true } : row
-    );
-    setRows(updatedRows);
-    localStorage.setItem("standardRows", JSON.stringify(updatedRows.filter(r => r.saved)));
+  const openAddDialog = () => {
+    setEditingId(null);
+    setInitialData({});
+    setIsDialogOpen(true);
   };
 
-  const editRow = (id: string) => {
-    const updatedRows = rows.map(row => 
-      row.id === id ? { ...row, saved: false } : row
-    );
-    setRows(updatedRows);
-    localStorage.setItem("standardRows", JSON.stringify(updatedRows.filter(r => r.saved)));
+  const openEditDialog = (row: StandardRow) => {
+    setEditingId(row.id);
+    setInitialData({
+      std: row.std,
+      concentration: row.concentration,
+      note: row.note,
+      fileName: row.fileName
+    });
+    setIsDialogOpen(true);
   };
 
-  const updateRow = (id: string, field: keyof StandardRow, value: string) => {
-    setRows(rows.map(row => 
-      row.id === id ? { ...row, [field]: value } : row
-    ));
+  const handleSaveStandard = (data: StandardRowData) => {
+    if (editingId) {
+      const updatedRows = rows.map(r => 
+        r.id === editingId ? { ...r, ...data } : r
+      );
+      saveRowsToLocal(updatedRows);
+    } else {
+      const newRow: StandardRow = {
+        id: Date.now().toString(),
+        ...data
+      };
+      saveRowsToLocal([...rows, newRow]);
+    }
+    
+    setIsDialogOpen(false);
   };
 
   return (
@@ -72,6 +97,22 @@ export default function StandardPage() {
         
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">Standard Page</h1>
+          
+          <StandardDialog 
+            open={isDialogOpen} 
+            onOpenChange={setIsDialogOpen}
+            initialData={initialData}
+            isEditing={!!editingId}
+            onSave={handleSaveStandard}
+            trigger={
+              <DialogTrigger 
+                render={<Button onClick={openAddDialog} className="bg-[#5E42CD] hover:bg-[#4d36a8] text-white shadow-sm" />}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Standard
+              </DialogTrigger>
+            }
+          />
         </div>
 
         {/* Table Area */}
@@ -80,83 +121,44 @@ export default function StandardPage() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-zinc-500 uppercase bg-zinc-50/50 border-b border-zinc-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Num ID</th>
-                  <th className="px-6 py-4 font-semibold">STD</th>
-                  <th className="px-6 py-4 font-semibold">Concentration</th>
-                  <th className="px-6 py-4 font-semibold">Note</th>
-                  <th className="px-6 py-4 font-semibold text-center w-24">Action</th>
+                  <th className="px-6 py-2 font-semibold">Num ID</th>
+                  <th className="px-6 py-2 font-semibold">STD</th>
+                  <th className="px-6 py-2 font-semibold">Concentration</th>
+                  <th className="px-6 py-2 font-semibold">Note</th>
+                  <th className="px-6 py-2 font-semibold text-center w-24">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {rows.map((row) => (
+                {rows.map((row, index) => (
                   <tr key={row.id} className="hover:bg-zinc-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-zinc-900">
-                      {row.numId}
+                    <td className="px-6 font-medium text-zinc-900">
+                      {index + 1}
                     </td>
-                    <td className="px-6 py-4">
-                      {row.saved ? (
-                        <span className="text-zinc-700">{row.std}</span>
-                      ) : (
-                        <Input 
-                          value={row.std}
-                          onChange={(e) => updateRow(row.id, "std", e.target.value)}
-                          placeholder="Enter STD"
-                          className="h-9"
-                        />
-                      )}
+                    <td className="px-6 text-zinc-700">
+                      {row.std}
                     </td>
-                    <td className="px-6 py-4">
-                      {row.saved ? (
-                        <span className="text-zinc-700">{row.concentration}</span>
-                      ) : (
-                        <Input 
-                          value={row.concentration}
-                          onChange={(e) => updateRow(row.id, "concentration", e.target.value)}
-                          placeholder="Enter concentration"
-                          className="h-9"
-                        />
-                      )}
+                    <td className="px-6 text-zinc-700">
+                      {row.concentration}
                     </td>
-                    <td className="px-6 py-4">
-                      {row.saved ? (
-                        <span className="text-zinc-700">{row.note}</span>
-                      ) : (
-                        <Input 
-                          value={row.note}
-                          onChange={(e) => updateRow(row.id, "note", e.target.value)}
-                          placeholder="Enter notes"
-                          className="h-9"
-                        />
-                      )}
+                    <td className="px-6 text-zinc-700">
+                      {row.note}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-1">
                       <div className="flex justify-center items-center gap-1">
-                        {!row.saved ? (
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => saveRow(row.id)}
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50 h-9 w-9"
-                            title="Save"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => editRow(row.id)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-9 w-9"
-                            title="Edit"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => openEditDialog(row)}
+                          className="text-zinc-400 hover:text-blue-600 hover:bg-blue-50 h-9 w-9 cursor-pointer"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           onClick={() => deleteRow(row.id)}
-                          className="text-zinc-400 hover:text-red-600 hover:bg-red-50 h-9 w-9"
+                          className="text-zinc-400 hover:text-red-600 hover:bg-red-50 h-9 w-9 cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -169,24 +171,13 @@ export default function StandardPage() {
                 {rows.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">
-                      No rows added yet. Click the button below to add a row.
+                      No rows added yet. Click &quot;Add Standard&quot; to create one.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Add Row Button */}
-        <div className="flex justify-center pt-4">
-          <Button 
-            onClick={addRow}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add More Rows
-          </Button>
         </div>
 
       </div>

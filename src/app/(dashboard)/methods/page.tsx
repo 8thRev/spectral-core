@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Edit } from "lucide-react";
 import { CreatableSelect } from "@/components/ui/creatable-select";
+import { StandardDialog, StandardRowData } from "@/components/shared/StandardDialog";
 
 export default function MethodPage() {
   const router = useRouter();
@@ -38,11 +39,47 @@ export default function MethodPage() {
   
   // States for Standards Dropdown
   const [calStandard, setCalStandard] = useState("");
+  const [standardsList, setStandardsList] = useState<{id: string, name: string, wavelength: string}[]>([]);
 
-  const [standardsList, setStandardsList] = useState([
-    { id: "std-1", name: "Standard A", wavelength: "450" },
-    { id: "std-2", name: "Standard B", wavelength: "600" },
-  ]);
+  // States for Add New Standard Modal
+  const [isAddStandardModalOpen, setIsAddStandardModalOpen] = useState(false);
+  const [initialDialogData, setInitialDialogData] = useState<Partial<StandardRowData>>({});
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem("standardRows");
+    let parsed: Record<string, string>[] = [];
+    if (saved) {
+      try {
+        parsed = JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse standard rows", e);
+      }
+    }
+
+    const predefined = [
+      { id: "pre-1", std: "Standard 1", concentration: "", note: "", fileName: "Standard 1" },
+      { id: "pre-2", std: "Standard 2", concentration: "", note: "", fileName: "Standard 2" },
+      { id: "pre-3", std: "Standard 3", concentration: "", note: "", fileName: "Standard 3" },
+      { id: "pre-4", std: "Standard 4", concentration: "", note: "", fileName: "Standard 4" },
+    ];
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      parsed = predefined;
+    } else {
+      const hasPredefined = parsed.some(r => typeof r.std === 'string' && r.std.includes("Standard 1"));
+      if (!hasPredefined) {
+        parsed = [...predefined, ...parsed];
+      }
+    }
+
+    Promise.resolve().then(() => {
+      setStandardsList(parsed.map(p => ({
+        id: p.id || "",
+        name: p.fileName || p.std || "Unnamed Standard",
+        wavelength: p.concentration || ""
+      })));
+    });
+  }, []);
 
   const handleStandardSelect = (val: string | null) => {
     const safeVal = val || "";
@@ -58,17 +95,43 @@ export default function MethodPage() {
   };
 
   const handleAddStandard = (newStandardName: string) => {
-    const newId = `std-${Date.now()}`;
+    setInitialDialogData({ fileName: newStandardName });
+    setIsAddStandardModalOpen(true);
+  };
+
+  const handleSaveNewStandard = (data: StandardRowData) => {
+    const newId = Date.now().toString();
+    const newRow = {
+      id: newId,
+      ...data,
+    };
+
+    // Save to local storage
+    const saved = localStorage.getItem("standardRows");
+    let parsed: Record<string, string>[] = [];
+    if (saved) {
+      try {
+        parsed = JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const updatedRows = [...parsed, newRow];
+    localStorage.setItem("standardRows", JSON.stringify(updatedRows));
+
+    // Update state
     setStandardsList([
       ...standardsList,
       {
         id: newId,
-        name: newStandardName,
-        wavelength: ""
+        name: newRow.fileName || newRow.std || "Unnamed Standard",
+        wavelength: newRow.concentration || ""
       }
     ]);
+    
     setCalStandard(newId);
-    setCalWaveVal(""); // New standard starts empty, user fills it
+    setCalWaveVal(newRow.concentration || "");
+    setIsAddStandardModalOpen(false);
   };
 
   const handleSaveCalibration = () => {
@@ -254,6 +317,13 @@ export default function MethodPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <StandardDialog 
+        open={isAddStandardModalOpen} 
+        onOpenChange={setIsAddStandardModalOpen}
+        initialData={initialDialogData}
+        onSave={handleSaveNewStandard}
+      />
 
       {/* Epsilon Modal */}
       <Dialog open={epsilonModalOpen} onOpenChange={setEpsilonModalOpen}>

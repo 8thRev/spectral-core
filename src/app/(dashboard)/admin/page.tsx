@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +10,92 @@ import { Label } from "@/components/ui/label";
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
-import { MapPin, Search, Plus, ListFilter, SlidersHorizontal, Settings, MoreHorizontal } from 'lucide-react';
+import { MapPin, Search, Plus, ListFilter, SlidersHorizontal, Settings, MoreHorizontal, Edit2, X, Check } from 'lucide-react';
 
 export default function AdminPage() {
   const [isAutomatic, setIsAutomatic] = useState(false);
   
+  const [facilities, setFacilities] = useState<{id: string, name: string, location: string}[]>([]);
+  const [facilityName, setFacilityName] = useState("");
+  const [facilityLocation, setFacilityLocation] = useState("");
+  const [editingFacility, setEditingFacility] = useState<string | null>(null);
+
+  const [instruments, setInstruments] = useState<{id: string, name: string, type: string}[]>([]);
+  const [instrumentName, setInstrumentName] = useState("");
+  const [instrumentType, setInstrumentType] = useState("");
+  const [editingInstrument, setEditingInstrument] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      const savedFacilities = localStorage.getItem("admin_facilities");
+      const savedInstruments = localStorage.getItem("admin_instruments");
+      if (savedFacilities) setFacilities(JSON.parse(savedFacilities));
+      if (savedInstruments) setInstruments(JSON.parse(savedInstruments));
+    });
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("admin_facilities", JSON.stringify(facilities));
+  }, [facilities]);
+
+  useEffect(() => {
+    localStorage.setItem("admin_instruments", JSON.stringify(instruments));
+  }, [instruments]);
+
+  const handleAddFacility = () => {
+    if (!facilityName.trim()) return;
+    if (editingFacility) {
+      setFacilities(prev => prev.map(f => f.id === editingFacility ? { ...f, name: facilityName, location: facilityLocation } : f));
+      setEditingFacility(null);
+    } else {
+      setFacilities(prev => [...prev, { id: Date.now().toString(), name: facilityName, location: facilityLocation }]);
+    }
+    setFacilityName("");
+    setFacilityLocation("");
+  };
+
+  const handleEditFacility = (f: { id: string; name: string; location: string }) => {
+    setFacilityName(f.name);
+    setFacilityLocation(f.location);
+    setEditingFacility(f.id);
+  };
+  
+  const handleRemoveFacility = (id: string) => {
+    setFacilities(prev => prev.filter(f => f.id !== id));
+    if (editingFacility === id) {
+      setEditingFacility(null);
+      setFacilityName("");
+      setFacilityLocation("");
+    }
+  };
+
+  const handleAddInstrument = () => {
+    if (!instrumentName.trim()) return;
+    if (editingInstrument) {
+      setInstruments(prev => prev.map(i => i.id === editingInstrument ? { ...i, name: instrumentName, type: instrumentType } : i));
+      setEditingInstrument(null);
+    } else {
+      setInstruments(prev => [...prev, { id: Date.now().toString(), name: instrumentName, type: instrumentType }]);
+    }
+    setInstrumentName("");
+    setInstrumentType("");
+  };
+
+  const handleEditInstrument = (i: { id: string; name: string; type: string }) => {
+    setInstrumentName(i.name);
+    setInstrumentType(i.type);
+    setEditingInstrument(i.id);
+  };
+  
+  const handleRemoveInstrument = (id: string) => {
+    setInstruments(prev => prev.filter(i => i.id !== id));
+    if (editingInstrument === id) {
+      setEditingInstrument(null);
+      setInstrumentName("");
+      setInstrumentType("");
+    }
+  };
+
   // Mock Audit Trail Data
   const auditLogs = [
     { id: 1, date: "2026-08-14", time: "14:30:00", location: "Main Facility", ip: "192.168.1.45", person: "Anita Cruz", action: "Updated System Facility" },
@@ -58,16 +139,52 @@ export default function AdminPage() {
             <div className="space-y-4 flex-1">
               <div className="space-y-2">
                 <Label htmlFor="facility-name" className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Facility Name</Label>
-                <Input id="facility-name" placeholder="e.g. Newton Main Lab" className="bg-zinc-50 border-zinc-200" />
+                <Input 
+                  id="facility-name" 
+                  placeholder="e.g. Newton Main Lab" 
+                  className="bg-zinc-50 border-zinc-200" 
+                  value={facilityName}
+                  onChange={(e) => setFacilityName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="facility-location" className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Location / Address</Label>
-                <Input id="facility-location" placeholder="e.g. Building 4, Floor 2" className="bg-zinc-50 border-zinc-200" />
+                <Input 
+                  id="facility-location" 
+                  placeholder="e.g. Building 4, Floor 2" 
+                  className="bg-zinc-50 border-zinc-200" 
+                  value={facilityLocation}
+                  onChange={(e) => setFacilityLocation(e.target.value)}
+                />
               </div>
             </div>
-            <div className="pt-6 mt-auto">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" /> Add Location
+            
+            <div className="mt-auto space-y-4">
+              {facilities.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {facilities.map((f) => (
+                    <Badge key={f.id} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 cursor-pointer">
+                      <span className="max-w-[120px] truncate" title={`${f.name} - ${f.location}`}>
+                        {f.name}
+                      </span>
+                      <div className="flex items-center">
+                        <button onClick={() => handleEditFacility(f)} className="p-1 text-blue-600 hover:bg-blue-200 rounded-md transition-colors cursor-pointer" title="Edit">
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => handleRemoveFacility(f.id)} className="p-1 text-blue-600 hover:bg-blue-200 rounded-md transition-colors cursor-pointer" title="Remove">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <Button 
+                onClick={handleAddFacility} 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={!facilityName.trim()}
+              >
+                {editingFacility ? <><Check className="w-4 h-4 mr-2" /> Update Location</> : <><Plus className="w-4 h-4 mr-2" /> Add Location</>}
               </Button>
             </div>
           </Card>
@@ -87,19 +204,56 @@ export default function AdminPage() {
             <div className="space-y-4 flex-1">
               <div className="space-y-2">
                 <Label htmlFor="instrument-name" className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Instrument Name</Label>
-                <Input id="instrument-name" placeholder="e.g. Extractor Alpha" className="bg-zinc-50 border-zinc-200" />
+                <Input 
+                  id="instrument-name" 
+                  placeholder="e.g. Extractor Alpha" 
+                  className="bg-zinc-50 border-zinc-200" 
+                  value={instrumentName}
+                  onChange={(e) => setInstrumentName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="instrument-type" className="text-xs font-semibold text-zinc-700 uppercase tracking-wider">Type / Model</Label>
-                <Input id="instrument-type" placeholder="e.g. Flowcell - X100" className="bg-zinc-50 border-zinc-200" />
+                <Input 
+                  id="instrument-type" 
+                  placeholder="e.g. Flowcell - X100" 
+                  className="bg-zinc-50 border-zinc-200" 
+                  value={instrumentType}
+                  onChange={(e) => setInstrumentType(e.target.value)}
+                />
               </div>
             </div>
-            <div className="pt-6 mt-auto">
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                <Plus className="w-4 h-4 mr-2" /> Register Instrument
+            
+            <div className="mt-auto space-y-4">
+              {instruments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {instruments.map((i) => (
+                    <Badge key={i.id} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 cursor-pointer">
+                      <span className="max-w-[120px] truncate" title={`${i.name} - ${i.type}`}>
+                        {i.name}
+                      </span>
+                      <div className="flex items-center">
+                        <button onClick={() => handleEditInstrument(i)} className="p-1 text-purple-600 hover:bg-purple-200 rounded-md transition-colors cursor-pointer" title="Edit">
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => handleRemoveInstrument(i.id)} className="p-1 text-purple-600 hover:bg-purple-200 rounded-md transition-colors cursor-pointer" title="Remove">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <Button 
+                onClick={handleAddInstrument} 
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={!instrumentName.trim()}
+              >
+                {editingInstrument ? <><Check className="w-4 h-4 mr-2" /> Update Instrument</> : <><Plus className="w-4 h-4 mr-2" /> Register Instrument</>}
               </Button>
             </div>
           </Card>
+
         </div>
 
         {/* Control Daily Health Checks (Migrated) */}
